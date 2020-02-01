@@ -4,3 +4,12 @@
 [submodule "tools/gate"]
 	path = tools/gate
 	url = https://github.com/cpp-pm/gate
+[submodule "include/gumbo-parser"]
+	path = include/gumbo-parser
+	url = https://github.com/google/gumbo-parser
+[submodule "include/beast"]
+	path = include/beast
+	url = https://github.com/boostorg/beast
+[submodule "include/boost"]
+	path = include/boost
+	url = https://github.com/boostorg/asio

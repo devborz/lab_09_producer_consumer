@@ -1,0 +1,59 @@
+Determining if the pthread_create exist failed with the following output:
+Change Dir: /mnt/c/Users/Usman/workspace/3-semestr-labs/lab-09-producer-consumer/_build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_2fe98/fast"
+make[1]: Entering directory '/mnt/c/Users/Usman/workspace/3-semestr-labs/lab-09-producer-consumer/_build/CMakeFiles/CMakeTmp'
+/usr/bin/make -f CMakeFiles/cmTC_2fe98.dir/build.make CMakeFiles/cmTC_2fe98.dir/build
+make[2]: Entering directory '/mnt/c/Users/Usman/workspace/3-semestr-labs/lab-09-producer-consumer/_build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_2fe98.dir/CheckSymbolExists.c.o
+/usr/bin/cc    -o CMakeFiles/cmTC_2fe98.dir/CheckSymbolExists.c.o   -c /mnt/c/Users/Usman/workspace/3-semestr-labs/lab-09-producer-consumer/_build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_2fe98
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2fe98.dir/link.txt --verbose=1
+/usr/bin/cc      CMakeFiles/cmTC_2fe98.dir/CheckSymbolExists.c.o  -o cmTC_2fe98 
+CMakeFiles/cmTC_2fe98.dir/CheckSymbolExists.c.o: In function `main':
+CheckSymbolExists.c:(.text+0x1b): undefined reference to `pthread_create'
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_2fe98.dir/build.make:97: recipe for target 'cmTC_2fe98' failed
+make[2]: *** [cmTC_2fe98] Error 1
+make[2]: Leaving directory '/mnt/c/Users/Usman/workspace/3-semestr-labs/lab-09-producer-consumer/_build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_2fe98/fast' failed
+make[1]: *** [cmTC_2fe98/fast] Error 2
+make[1]: Leaving directory '/mnt/c/Users/Usman/workspace/3-semestr-labs/lab-09-producer-consumer/_build/CMakeFiles/CMakeTmp'
+
+File /mnt/c/Users/Usman/workspace/3-semestr-labs/lab-09-producer-consumer/_build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_create
+  return ((int*)(&pthread_create))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /mnt/c/Users/Usman/workspace/3-semestr-labs/lab-09-producer-consumer/_build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_88e5a/fast"
+make[1]: Entering directory '/mnt/c/Users/Usman/workspace/3-semestr-labs/lab-09-producer-consumer/_build/CMakeFiles/CMakeTmp'
+/usr/bin/make -f CMakeFiles/cmTC_88e5a.dir/build.make CMakeFiles/cmTC_88e5a.dir/build
+make[2]: Entering directory '/mnt/c/Users/Usman/workspace/3-semestr-labs/lab-09-producer-consumer/_build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_88e5a.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_88e5a.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.10/Modules/CheckFunctionExists.c
+Linking C executable cmTC_88e5a
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_88e5a.dir/link.txt --verbose=1
+/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTC_88e5a.dir/CheckFunctionExists.c.o  -o cmTC_88e5a -lpthreads 
+/usr/bin/ld: cannot find -lpthreads
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_88e5a.dir/build.make:97: recipe for target 'cmTC_88e5a' failed
+make[2]: *** [cmTC_88e5a] Error 1
+make[2]: Leaving directory '/mnt/c/Users/Usman/workspace/3-semestr-labs/lab-09-producer-consumer/_build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_88e5a/fast' failed
+make[1]: *** [cmTC_88e5a/fast] Error 2
+make[1]: Leaving directory '/mnt/c/Users/Usman/workspace/3-semestr-labs/lab-09-producer-consumer/_build/CMakeFiles/CMakeTmp'
+
+

@@ -1,0 +1,2 @@
+/mnt/c/Users/Usman/workspace/3-semestr-labs/lab-09-producer-consumer/_build/_3rdParty/Hunter/toolchain/_builds/CMakeFiles/rebuild_cache.dir
+/mnt/c/Users/Usman/workspace/3-semestr-labs/lab-09-producer-consumer/_build/_3rdParty/Hunter/toolchain/_builds/CMakeFiles/edit_cache.dir

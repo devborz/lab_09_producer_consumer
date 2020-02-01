@@ -1,0 +1,4 @@
+/mnt/c/Users/Usman/workspace/3-semestr-labs/lab-09-producer-consumer/_build/CMakeFiles/rebuild_cache.dir
+/mnt/c/Users/Usman/workspace/3-semestr-labs/lab-09-producer-consumer/_build/CMakeFiles/test.dir
+/mnt/c/Users/Usman/workspace/3-semestr-labs/lab-09-producer-consumer/_build/CMakeFiles/tests.dir
+/mnt/c/Users/Usman/workspace/3-semestr-labs/lab-09-producer-consumer/_build/CMakeFiles/edit_cache.dir
