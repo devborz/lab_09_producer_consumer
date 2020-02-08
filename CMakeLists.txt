@@ -52,6 +52,9 @@ add_library(task INTERFACE
 add_executable(tests
   ${CMAKE_CURRENT_SOURCE_DIR}/tests/test.cpp
 )
+add_executable(work
+  ${CMAKE_CURRENT_SOURCE_DIR}/sources/source.cpp
+)
 
 target_include_directories(directory_manager
   INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -81,6 +84,9 @@ target_include_directories(producer_consumer
 target_include_directories(tests
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+target_include_directories(work
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
 include_directories(${CURL_INCLUDE_DIR})
 
 # target_link_libraries(root INTERFACE asio)
@@ -92,7 +98,7 @@ Boost::thread Boost::filesystem parser directory_manager ${CURL_LIBRARIES}
 # asio beast root
 )
 target_link_libraries(tests GTest::main task)
-
+target_link_libraries(work task)
 enable_testing()
 add_test(NAME unit_tests COMMAND tests)
 

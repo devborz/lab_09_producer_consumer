@@ -62,7 +62,7 @@ class directory_manager {
       }
     }
     number++;
-    std::string extension;
+    std::string extension = url.substr(url.find_last_of("."));
     std::string filename =
         "downloads/images/image_" + std::to_string(number) + extension;
     return filename;

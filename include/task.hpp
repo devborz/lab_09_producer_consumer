@@ -63,7 +63,7 @@ std::string download(const char url[], directory_manager& manager,
   /* set URL to get here */
   curl_easy_setopt(curl_handle, CURLOPT_URL, url);
   /* Switch on full protocol/debug output while testing */
-  curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
+  curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 0L);
   /* disable progress meter, set to 0L to enable it */
   curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1L);
   /* send all data to this function  */
@@ -184,8 +184,11 @@ void parse_files(producer_consumer<std::string>& download_parse,
   }
 }
 
-void print(producer_consumer<std::string>& parse_print, const fs::path& out) {
+void print(producer_consumer<std::string>& parse_print, //const fs::path& out,
+           directory_manager& manager) {
   while (!parse_print.empty()) {
+    char* curl = str_to_char(parse_print.consume());
+    download(curl, manager, "img");
   }
 }
 
@@ -197,7 +200,7 @@ void get_options(variables_map& vm, int argc, char* argv[]) {
       "network_threads", value<size_t>(),
       "количество потоков для скачивания страниц")(
       "parser_threads", value<size_t>(),
-      "количество потоков для обработки страниц")("output", value<fs::path>(),
+      "количество потоков для обработки страниц")("output", value<std::string>(),
                                                   "путь до выходного файла");
 
   store(parse_command_line(argc, argv, desc), vm);
@@ -228,7 +231,7 @@ void work(int argc, char* argv[]) {
 
   size_t max_num = std::thread::hardware_concurrency();
 
-  fs::path out = vm["out"].as<fs::path>();
+  // fs::path out = vm["out"].as<fs::path>();
 
   for (size_t i = 0; i < network_th_cnt; ++i) {
     if (i != network_th_cnt - 1) {
@@ -250,7 +253,8 @@ void work(int argc, char* argv[]) {
   }
   for (size_t i = 0; i < max_num; ++i) {
     print_threads.add_thread(
-        new boost::thread(print, std::ref(parse_print), std::ref(out)));
+        new boost::thread(print, std::ref(parse_print), //std::ref(out),
+      std::ref(manager)));
   }
   network_threads.join_all();
   parser_threads.join_all();
