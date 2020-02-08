@@ -1,0 +1,12 @@
+[submodule "tools/polly"]
+	path = tools/polly
+	url = https://github.com/cpp-pm/polly
+[submodule "tools/gate"]
+	path = tools/gate
+	url = https://github.com/cpp-pm/gate
+# [submodule "include/beast"]
+# 	path = include/beast
+# 	url = https://github.com/boostorg/beast
+# [submodule "include/boost"]
+# 	path = include/boost
+# 	url = https://github.com/boostorg/asio

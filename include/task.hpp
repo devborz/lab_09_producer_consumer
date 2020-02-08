@@ -45,12 +45,12 @@ char* str_to_char(const std::string& str) {
   return arr;
 }
 
-std::string download(const char url[], directory_manager& manager, std::string mode) {
+std::string download(const char url[], directory_manager& manager,
+                     std::string mode) {
   std::string filename;
   if (mode == "html") {
     filename = manager.create_html_file();
-  }
-  else if (mode == "img") {
+  } else if (mode == "img") {
     std::string url_s = std::string(url);
     filename = manager.create_image(url_s);
   }
@@ -149,9 +149,9 @@ std::string download(const char url[], directory_manager& manager, std::string m
 //   return " ";
 // }
 
-std::vector<std::string> find_links(const std::string& url,
-                                   directory_manager& manager,
-                                 producer_consumer<std::string>& producer_consumer) {
+std::vector<std::string> find_links(
+    const std::string& url, directory_manager& manager,
+    producer_consumer<std::string>& producer_consumer) {
   std::vector<std::string> vec;
   char* curl = str_to_char(url);
   std::string filename = download(curl, manager, "html");
@@ -168,8 +168,10 @@ void download_files(producer_consumer<std::string>& producer_consumer,
                     directory_manager& manager) {
   if (depth > 0) {
     for (std::vector<std::string>::iterator it = begin; it < end; ++it) {
-      std::vector<std::string> links = find_links(*it, manager, producer_consumer);
-      download_files(producer_consumer, links.begin(), links.end(), depth - 1, manager);
+      std::vector<std::string> links =
+          find_links(*it, manager, producer_consumer);
+      download_files(producer_consumer, links.begin(), links.end(), depth - 1,
+                     manager);
     }
   }
 }
@@ -182,10 +184,8 @@ void parse_files(producer_consumer<std::string>& download_parse,
   }
 }
 
-void print(producer_consumer<std::string>& parse_print,
-           const fs::path& out) {
+void print(producer_consumer<std::string>& parse_print, const fs::path& out) {
   while (!parse_print.empty()) {
-
   }
 }
 
@@ -232,19 +232,16 @@ void work(int argc, char* argv[]) {
 
   for (size_t i = 0; i < network_th_cnt; ++i) {
     if (i != network_th_cnt - 1) {
-      network_threads.add_thread(
-          new boost::thread(download_files, std::ref(download_parse),
+      network_threads.add_thread(new boost::thread(
+          download_files, std::ref(download_parse),
           links.begin() + links.size() / network_th_cnt * i,
           links.begin() + links.size() / network_th_cnt * (i + 1), depth,
-          std::ref(manager))
-        );
-    }
-    else {
+          std::ref(manager)));
+    } else {
       network_threads.add_thread(
           new boost::thread(download_files, std::ref(download_parse),
-          links.begin() + links.size() / network_th_cnt * i,
-          links.end(), depth, std::ref(manager))
-        );
+                            links.begin() + links.size() / network_th_cnt * i,
+                            links.end(), depth, std::ref(manager)));
     }
   }
   for (size_t i = 0; i < parser_th_cnt; ++i) {

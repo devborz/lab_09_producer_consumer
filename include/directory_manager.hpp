@@ -44,7 +44,7 @@ class directory_manager {
     return filename;
   }
 
-  std::string create_image(const std::string& url) {
+  std::string create_image(const std::string &url) {
     std::lock_guard<std::mutex> lock(this->mutex_);
     fs::path path("downloads/images/");
     size_t number = 0;

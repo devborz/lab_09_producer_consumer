@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.com/devborz/lab_09_producer_consumer.svg?branch=master)](https://travis-ci.com/devborz/lab_09_producer_consumer)
 # Лабораторная работа №9
 
 ## Задание
