@@ -1,8 +1,8 @@
 // Copyright 2020 Usman Turkaev
 #pragma once
+#include <deque>
 #include <mutex>
 #include <queue>
-
 template <class T>
 class safe_queue {
  public:
