@@ -1,1 +1,0 @@
-rm downloads/pages/* && 
