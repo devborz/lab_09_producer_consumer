@@ -26,9 +26,9 @@ class producer_consumer {
     return *this;
   }
 
-  void produce(const T& task) { this->deque_.push_back(task); }
+  inline void produce(const T& value) { this->deque_.push_back(value); }
 
-  void produce(T&& task) { this->deque_.push_back(task); }
+  inline void produce(T&& value) { this->deque_.push_back(value); }
 
   void produce(std::vector<T>&& vec) {
     for (size_t i = 0; i < vec.size(); ++i) {
@@ -42,30 +42,25 @@ class producer_consumer {
     }
   }
 
-  T consume() {
-    T value;
-    bool success = false;
-    while (this->deque_.try_pop(value) != true) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(250));
-    }
-    return value;
+  inline T consume() { return this->deque_.pop_front(); }
+
+  inline size_t size() { return this->deque_.size(); }
+
+  inline T& front() { return this->deque_.front(); }
+
+  inline T& back() { return this->deque_.back(); }
+
+  inline bool empty() { return this->deque_.empty(); }
+
+  inline T& operator[](size_t pos) { return this->deque_[pos]; }
+
+  inline void clear() { this.deque_.clear(); }
+
+  inline typename std::deque<T>::iterator begin() {
+    return this->deque_.begin();
   }
 
-  size_t size() { return this->deque_.size(); }
-
-  T& front() { return this->deque_.front(); }
-
-  T& back() { return this->deque_.back(); }
-
-  bool empty() { return this->deque_.empty(); }
-
-  T& operator[](size_t pos) { return this->deque_[pos]; }
-
-  void clear() { this.deque_.clear(); }
-
-  typename std::deque<T>::iterator begin() { return this->deque_.begin(); }
-
-  typename std::deque<T>::iterator end() { return this.deque_.end(); }
+  inline typename std::deque<T>::iterator end() { return this.deque_.end(); }
 
  private:
   safe_deque<T> deque_;

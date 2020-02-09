@@ -74,7 +74,7 @@ class safe_deque {
     this->deque_.emplace(args...);
   }
 
-  size_t size() { return this->deque_.size(); }
+  inline size_t size() { return this->deque_.size(); }
 
   T& front() {
     std::lock_guard<std::mutex> lock(this->mutex_);
@@ -86,14 +86,17 @@ class safe_deque {
     return this->deque_.back();
   }
 
-  bool empty() { return this->deque_.empty(); }
+  inline bool empty() { return this->deque_.empty(); }
 
   T& operator[](size_t pos) {
     std::lock_guard<std::mutex> lock(this->mutex_);
     return this->deque_[pos];
   }
 
-  void clear() { this->deque_.clear(); }
+  inline void clear() {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    this->deque_.clear();
+  }
 
   typename std::deque<T>::iterator begin() {
     std::lock_guard<std::mutex> lock(this->mutex_);

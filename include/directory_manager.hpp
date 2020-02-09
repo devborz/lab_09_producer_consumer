@@ -1,6 +1,8 @@
 #pragma once
 #include <boost/filesystem.hpp>
 #include <fstream>
+#include <html_parser.hpp>
+#include <iostream>
 #include <mutex>
 #include <string>
 
@@ -10,64 +12,74 @@ class directory_manager {
  public:
   directory_manager() = default;
 
-  directory_manager(const directory_manager &) = delete;
+  directory_manager(const directory_manager&) = delete;
 
-  directory_manager(directory_manager &&) = delete;
+  directory_manager(directory_manager&&) = delete;
 
-  std::string
-  create_html_file() {  // const http::response<http::dynamic_body>& /
-    // res) {
-    std::lock_guard<std::mutex> lock(this->mutex_);
+  std::string create_html_file() {
+    this->lock();
     fs::path path("downloads/pages/");
-    size_t number = 0;
-    for (const fs::directory_entry &obj : fs::directory_iterator(path)) {
-      if (fs::is_regular_file(obj.path())) {
-        if (obj.path().extension().string() == ".html" &&
-            obj.path().stem().string().substr(0, 5) == "file_") {
-          if (std::stoi(obj.path().stem().string().substr(5))) {
-            size_t num = std::stoi(obj.path().stem().string().substr(5));
-            if (num > number) {
-              number = num;
-            }
-          }
-        }
-      }
-    }
-    number++;
-    std::string filename =
-        "downloads/pages/file_" + std::to_string(number) + ".html";
-    // std::ofstream file(filename);
-    // if (file.is_open()) {
-    //   file << res;
-    //   file.close();
-    // }
-    return filename;
+    std::string filename = "page";
+    std::string extension = ".html";
+    return path.string() + check_existance(path, filename, extension);
   }
 
-  std::string create_image(const std::string &url) {
-    std::lock_guard<std::mutex> lock(this->mutex_);
-    fs::path path("downloads/images/");
-    size_t number = 0;
-    for (const fs::directory_entry &obj : fs::directory_iterator(path)) {
-      if (fs::is_regular_file(obj.path())) {
-        if (obj.path().extension().string() == ".html" &&
-            obj.path().stem().string().substr(0, 5) == "image_") {
-          if (std::stoi(obj.path().stem().string().substr(5))) {
-            size_t num = std::stoi(obj.path().stem().string().substr(5));
-            if (num > number) {
-              number = num;
-            }
-          }
-        }
-      }
+  inline void unlock() { this->mutex_.unlock(); }
+
+  std::string create_image(const std::string& url) {
+    this->lock();
+    if (html::parser::is_image(url)) {
+      fs::path path("downloads/images/");
+      std::string extension;
+      std::string filename;
+      size_t dot_pos = url.find_last_of(".");
+      size_t slash_pos = url.find_last_of("/");
+      extension = url.substr(dot_pos);
+      filename = url.substr(slash_pos + 1, dot_pos - slash_pos - 1);
+      return path.string() + check_existance(path, filename, extension);
+    } else {
+      return "";
     }
-    number++;
-    std::string extension = url.substr(url.find_last_of("."));
-    std::string filename =
-        "downloads/images/image_" + std::to_string(number) + extension;
-    return filename;
   }
 
  private:
+  inline void lock() { this->mutex_.lock(); }
+
+  static inline std::string get_name(const fs::directory_entry& obj) {
+    return obj.path().stem().string();
+  }
+
+  static inline std::string get_ext(const fs::directory_entry& obj) {
+    return obj.path().extension().string();
+  }
+
+  static std::string check_existance(const fs::path& path,
+                                     const std::string& filename,
+                                     const std::string& extension) {
+    size_t number = 0;
+    for (const fs::directory_entry& obj : fs::directory_iterator(path)) {
+      if (fs::is_regular_file(obj.path())) {
+        if (get_ext(obj) == extension &&
+            get_name(obj).substr(0, filename.size()) == filename) {
+          if (get_name(obj).substr(filename.size(), 1) == "_" &&
+              std::stoi(get_name(obj).substr(filename.size() + 1))) {
+            size_t index = std::stoi(get_name(obj).substr(filename.size() + 1));
+            if (index >= number) {
+              number = index + 1;
+            }
+          } else if (get_name(obj) == filename && number == 0) {
+            number = 1;
+          }
+        }
+      }
+    }
+    switch (number) {
+      case 0:
+        return filename + extension;
+      default:
+        return filename + "_" + std::to_string(number) + extension;
+    }
+  }
+
   std::mutex mutex_;
 };

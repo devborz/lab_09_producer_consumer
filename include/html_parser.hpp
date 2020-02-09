@@ -23,6 +23,11 @@ std::vector<std::string> find_links(const std::string& html_code) {
   return links;
 }
 
+inline bool is_image(const std::string& url) {
+  return url.find_last_of(".") != std::string::npos &&
+         url.find_last_of(".") > url.find_last_of("/");
+}
+
 std::vector<std::string> find_images(const std::string& html_code) {
   std::vector<std::string> images;
   size_t last_pos = 0;
@@ -32,7 +37,7 @@ std::vector<std::string> find_images(const std::string& html_code) {
     size_t end = html_code.find("\"", begin);
     std::string image = html_code.substr(begin, end - begin);
     last_pos = end;
-    if (image.find("https://") != std::string::npos) {
+    if (image.find("https://") != std::string::npos && is_image(image)) {
       images.push_back(image);
     }
   }
@@ -40,7 +45,7 @@ std::vector<std::string> find_images(const std::string& html_code) {
 }
 }  // namespace parser
 
-std::string read_file(std::string filename = "downloads/file_1.html") {
+std::string read_html_file(std::string filename = "downloads/page.html") {
   std::ifstream file(filename);
   if (file.is_open()) {
     std::string html_code;
