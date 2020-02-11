@@ -114,10 +114,16 @@ void parse_files(producer_consumer<std::string>& pages_paths,
                  producer_consumer<std::string>& images_urls) {
   images_urls.start_producing();
   while (!pages_paths.empty() || pages_paths.is_producing()) {
+    std::string filename;
     if (!pages_paths.empty()) {
-      std::string filename = pages_paths.consume();
-      std::string html_code = html::read_html_file(filename);
-      images_urls.produce(html::parser::find_images(html_code));
+      if (pages_paths.try_consume(filename)) {
+        std::string html_code = html::read_html_file(filename);
+        images_urls.produce(html::parser::find_images(html_code));
+      } else {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      }
+    } else {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
   }
   images_urls.stop_producing();
@@ -126,12 +132,18 @@ void parse_files(producer_consumer<std::string>& pages_paths,
 void write(producer_consumer<std::string>& images_urls,  // const fs::path& out,
            directory_manager& manager) {
   while (!images_urls.empty() || images_urls.is_producing()) {
+    std::string url;
     if (!images_urls.empty()) {
-      std::string url = images_urls.consume();
-      if (html::parser::is_image(url)) {
-        char* curl = str_to_char(url);
-        download_obj(curl, manager, "img");
+      if (images_urls.try_consume(url)) {
+        if (html::parser::is_image(url)) {
+          char* curl = str_to_char(url);
+          download_obj(curl, manager, "img");
+        }
+      } else {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
       }
+    } else {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
   }
 }
@@ -174,8 +186,7 @@ void work(int argc, char* argv[]) {
 
     size_t network_th_cnt = vm["network_threads"].as<size_t>();
     size_t parser_th_cnt = vm["parser_threads"].as<size_t>();
-    size_t write_th_cnt =
-        std::thread::hardware_concurrency() - network_th_cnt - parser_th_cnt;
+    size_t write_th_cnt = 1;
 
     directory_manager pages;
     directory_manager images;

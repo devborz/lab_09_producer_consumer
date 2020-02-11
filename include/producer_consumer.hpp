@@ -1,7 +1,6 @@
 // Copyright 2020 Usman Turkaev
 #pragma once
 #include <chrono>
-#include <mutex>
 #include <safe_deque.hpp>
 #include <thread>
 
@@ -32,17 +31,23 @@ class producer_consumer {
 
   void produce(std::vector<T>&& vec) {
     for (size_t i = 0; i < vec.size(); ++i) {
-      if (!this->check_existance(vec[i])) this->produce(vec[i]);
+      if (!this->check_existance(vec[i])) {
+        this->produce(vec[i]);
+      }
     }
   }
 
   void produce(const std::vector<T>& vec) {
     for (size_t i = 0; i < vec.size(); ++i) {
-      if (!this->check_existance(vec[i])) this->produce(vec[i]);
+      if (!this->check_existance(vec[i])) {
+        this->produce(vec[i]);
+      }
     }
   }
 
   inline T consume() { return this->deque_.pop_front(); }
+
+  inline bool try_consume(T& value) { return this->deque_.try_pop(value); }
 
   inline size_t size() { return this->deque_.size(); }
 
@@ -78,5 +83,6 @@ class producer_consumer {
 
  private:
   bool is_producing_ = false;
+
   safe_deque<T> deque_;
 };

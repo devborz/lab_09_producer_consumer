@@ -1,6 +1,7 @@
 // Copyright 2020 Usman Turkaev
 #pragma once
 #include <deque>
+#include <iostream>
 #include <mutex>
 #include <vector>
 
@@ -36,6 +37,20 @@ class safe_deque {
     this->deque_.push_back(std::move(value));
   }
 
+  void push_vec(std::vector<T>&& vec) {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    for (size_t i = 0; i < vec.size(); ++i) {
+      if (!this->check_existance(vec[i])) this->push_back(vec[i]);
+    }
+  }
+
+  void push_vec(const std::vector<T>& vec) {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    for (size_t i = 0; i < vec.size(); ++i) {
+      if (!this->check_existance(vec[i])) this->push_back(vec[i]);
+    }
+  }
+
   void push_front(const T& value) {
     std::lock_guard<std::mutex> lock(this->mutex_);
     this->deque_.push_front(value);
@@ -61,9 +76,15 @@ class safe_deque {
   }
 
   bool try_pop(T& value) {
-    if (this->mutex_.try_lock() && !this->deque_.empty()) {
-      value = this->pop_front();
-      return true;
+    if (this->mutex_.try_lock()) {
+      if (!this->deque_.empty()) {
+        value = this->deque_.front();
+        this->deque_.pop_front();
+        this->mutex_.unlock();
+        return true;
+      } else {
+        this->mutex_.unlock();
+      }
     }
     return false;
   }
@@ -98,7 +119,10 @@ class safe_deque {
     this->deque_.clear();
   }
 
-  typename std::deque<T>::iterator begin() { return this->deque_.begin(); }
+  typename std::deque<T>::iterator begin() {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    return this->deque_.begin();
+  }
 
   typename std::deque<T>::iterator end() {
     std::lock_guard<std::mutex> lock(this->mutex_);
