@@ -93,22 +93,29 @@ class safe_deque {
     return this->deque_[pos];
   }
 
-  inline void clear() {
+  void clear() {
     std::lock_guard<std::mutex> lock(this->mutex_);
     this->deque_.clear();
   }
 
-  typename std::deque<T>::iterator begin() {
-    std::lock_guard<std::mutex> lock(this->mutex_);
-    return this->deque_.begin();
-  }
+  typename std::deque<T>::iterator begin() { return this->deque_.begin(); }
 
   typename std::deque<T>::iterator end() {
     std::lock_guard<std::mutex> lock(this->mutex_);
-    return this.deque_.end();
+    return this->deque_.end();
   }
 
-  void resize(size_t size) { this->deque_.resize(size); }
+  inline void resize(size_t size) { this->deque_.resize(size); }
+
+  bool check_existance(const T& value) {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    for (const T& el : this->deque_) {
+      if (el == value) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   safe_deque<T>& operator=(std::vector<T>&& vec);
 

@@ -32,13 +32,13 @@ class producer_consumer {
 
   void produce(std::vector<T>&& vec) {
     for (size_t i = 0; i < vec.size(); ++i) {
-      this->produce(vec[i]);
+      if (!this->check_existance(vec[i])) this->produce(vec[i]);
     }
   }
 
   void produce(const std::vector<T>& vec) {
     for (size_t i = 0; i < vec.size(); ++i) {
-      this->produce(vec[i]);
+      if (!this->check_existance(vec[i])) this->produce(vec[i]);
     }
   }
 
@@ -56,12 +56,27 @@ class producer_consumer {
 
   inline void clear() { this.deque_.clear(); }
 
+  inline bool check_existance(const T& value) {
+    return this->deque_.check_existance(value);
+  }
+
+  inline void start_producing() {
+    if (!this->is_producing_) this->is_producing_ = true;
+  }
+
+  inline void stop_producing() {
+    if (this->is_producing_) this->is_producing_ = false;
+  }
+
+  inline bool is_producing() { return this->is_producing_; }
+
   inline typename std::deque<T>::iterator begin() {
     return this->deque_.begin();
   }
 
-  inline typename std::deque<T>::iterator end() { return this.deque_.end(); }
+  inline typename std::deque<T>::iterator end() { return this->deque_.end(); }
 
  private:
+  bool is_producing_ = false;
   safe_deque<T> deque_;
 };

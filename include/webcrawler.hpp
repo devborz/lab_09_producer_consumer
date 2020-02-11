@@ -27,8 +27,8 @@ char* str_to_char(const std::string& str) {
   return arr;
 }
 
-std::string download(const char url[], directory_manager& manager,
-                     std::string mode) {
+std::string download_obj(const char url[], directory_manager& manager,
+                         std::string mode) {
   std::string filename;
   if (mode == "html") {
     filename = manager.create_html_file();
@@ -75,48 +75,63 @@ std::string download(const char url[], directory_manager& manager,
 
 std::vector<std::string> find_links(
     const std::string& url, directory_manager& manager,
-    producer_consumer<std::string>& producer_consumer) {
-  std::vector<std::string> vec;
+    producer_consumer<std::string>& pages_paths) {
   char* curl = str_to_char(url);
-  std::string filename = download(curl, manager, "html");
+  std::string filename = download_obj(curl, manager, "html");
   std::string html_code = html::read_html_file(filename);
-  vec = html::parser::find_links(html_code);
+  std::vector<std::string> vec = html::parser::find_links(html_code);
   delete curl;
-  producer_consumer.produce(filename);
+  pages_paths.produce(filename);
   return vec;
 }
 
-void download_files(producer_consumer<std::string>& producer_consumer,
-                    std::vector<std::string>::iterator begin,
-                    std::vector<std::string>::iterator end, size_t depth,
-                    directory_manager& manager) {
+void download(producer_consumer<std::string>& pages_paths,
+              safe_deque<std::string>& urls,
+              std::vector<std::string>::iterator begin,
+              std::vector<std::string>::iterator end, size_t depth,
+              directory_manager& manager) {
   --depth;
   if (depth > 0) {
     for (std::vector<std::string>::iterator it = begin; it < end; ++it) {
-      std::vector<std::string> links =
-          find_links(*it, manager, producer_consumer);
-      download_files(producer_consumer, links.begin(), links.end(), depth,
-                     manager);
+      if (!urls.check_existance(*it)) {
+        urls.push_back(*it);
+        std::vector<std::string> links = find_links(*it, manager, pages_paths);
+        download(pages_paths, urls, links.begin(), links.end(), depth, manager);
+      }
     }
   }
 }
 
+void download_html_pages(producer_consumer<std::string>& pages_paths,
+                         safe_deque<std::string>& urls,
+                         std::vector<std::string>::iterator begin,
+                         std::vector<std::string>::iterator end, size_t depth,
+                         directory_manager& manager) {
+  download(pages_paths, urls, begin, end, depth, manager);
+}
+
 void parse_files(producer_consumer<std::string>& pages_paths,
                  producer_consumer<std::string>& images_urls) {
-  while (!pages_paths.empty()) {
-    std::string filename = pages_paths.consume();
-    std::string html_code = html::read_html_file(filename);
-    images_urls.produce(html::parser::find_images(html_code));
+  images_urls.start_producing();
+  while (!pages_paths.empty() || pages_paths.is_producing()) {
+    if (!pages_paths.empty()) {
+      std::string filename = pages_paths.consume();
+      std::string html_code = html::read_html_file(filename);
+      images_urls.produce(html::parser::find_images(html_code));
+    }
   }
+  images_urls.stop_producing();
 }
 
 void write(producer_consumer<std::string>& images_urls,  // const fs::path& out,
            directory_manager& manager) {
-  while (!images_urls.empty()) {
-    std::string url = images_urls.consume();
-    if (html::parser::is_image(url)) {
-      char* curl = str_to_char(url);
-      download(curl, manager, "img");
+  while (!images_urls.empty() || images_urls.is_producing()) {
+    if (!images_urls.empty()) {
+      std::string url = images_urls.consume();
+      if (html::parser::is_image(url)) {
+        char* curl = str_to_char(url);
+        download_obj(curl, manager, "img");
+      }
     }
   }
 }
@@ -148,6 +163,10 @@ void work(int argc, char* argv[]) {
 
     producer_consumer<std::string> pages_paths;
     producer_consumer<std::string> images_urls;
+    pages_paths.start_producing();
+    images_urls.start_producing();
+
+    safe_deque<std::string> urls;
 
     boost::thread_group download_th;
     boost::thread_group parse_th;
@@ -166,28 +185,29 @@ void work(int argc, char* argv[]) {
     for (size_t i = 0; i < network_th_cnt; ++i) {
       if (i != network_th_cnt - 1) {
         download_th.add_thread(new boost::thread(
-            download_files, std::ref(pages_paths),
+            download_html_pages, std::ref(pages_paths), std::ref(urls),
             links.begin() + links.size() / network_th_cnt * i,
             links.begin() + links.size() / network_th_cnt * (i + 1), depth,
             std::ref(pages)));
       } else {
-        download_th.add_thread(
-            new boost::thread(download_files, std::ref(pages_paths),
-                              links.begin() + links.size() / network_th_cnt * i,
-                              links.end(), depth, std::ref(pages)));
+        download_th.add_thread(new boost::thread(
+            download_html_pages, std::ref(pages_paths), std::ref(urls),
+            links.begin() + links.size() / network_th_cnt * i, links.end(),
+            depth, std::ref(pages)));
       }
     }
-    download_th.join_all();
     for (size_t i = 0; i < parser_th_cnt; ++i) {
-      parse_th.add_thread(new boost::thread(
-          parse_files, std::ref(pages_paths), std::ref(images_urls)));
+      parse_th.add_thread(new boost::thread(parse_files, std::ref(pages_paths),
+                                            std::ref(images_urls)));
     }
-    parse_th.join_all();
     for (size_t i = 0; i < write_th_cnt; ++i) {
       write_th.add_thread(
-          new boost::thread(write, std::ref(images_urls),
-                            std::ref(images)));
+          new boost::thread(write, std::ref(images_urls), std::ref(images)));
     }
+    download_th.join_all();
+    pages_paths.stop_producing();
+    parse_th.join_all();
+    images_urls.stop_producing();
     write_th.join_all();
   } catch (const std::exception& e) {
     std::cout << e.what();
