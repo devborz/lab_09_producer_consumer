@@ -36,3 +36,5 @@ _build/*
 sources/trash.cpp
 
 include/safe_queue.hpp
+
+downloads/*
