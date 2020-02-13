@@ -32,9 +32,9 @@ class producer_consumer {
   void produce(std::vector<T>&& vec) {
     std::lock_guard<std::mutex> lock(this->mutex_);
     for (size_t i = 0; i < vec.size(); ++i) {
-      if (!this->deque_.check_existance(vec[i]) &&
-          !this->consumed_.check_existance(vec[i])) {
-        this->produce(vec[i]);
+      if (!this->deque_.check_existance(std::move(vec[i])) &&
+          !this->consumed_.check_existance(std::move(vec[i]))) {
+        this->produce(std::move(vec[i]));
       }
     }
   }

@@ -1,7 +1,6 @@
 // Copyright 2020 Usman Turkaev
 #pragma once
 #include <deque>
-#include <iostream>
 #include <mutex>
 #include <vector>
 
@@ -123,7 +122,7 @@ class safe_deque {
 
   inline void resize(size_t size) { this->deque_.resize(size); }
 
-  bool check_existance(T value) {
+  bool check_existance(const T& value) {
     std::lock_guard<std::mutex> lock(this->mutex_);
     for (T el : this->deque_) {
       if (el == value) {
@@ -149,7 +148,7 @@ safe_deque<T>& safe_deque<T>::operator=(std::vector<T>&& vec) {
     this->clear();
   }
   for (size_t i = 0; i < vec.size(); ++i) {
-    this->push_back(vec[i]);
+    this->push_back(std::move(vec[i]));
   }
   return *this;
 }
