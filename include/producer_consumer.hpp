@@ -30,24 +30,38 @@ class producer_consumer {
   inline void produce(T&& value) { this->deque_.push_back(value); }
 
   void produce(std::vector<T>&& vec) {
+    std::lock_guard<std::mutex> lock(this->mutex_);
     for (size_t i = 0; i < vec.size(); ++i) {
-      if (!this->check_existance(vec[i])) {
+      if (!this->deque_.check_existance(vec[i]) &&
+          !this->consumed_.check_existance(vec[i])) {
         this->produce(vec[i]);
       }
     }
   }
 
   void produce(const std::vector<T>& vec) {
+    std::lock_guard<std::mutex> lock(this->mutex_);
     for (size_t i = 0; i < vec.size(); ++i) {
-      if (!this->check_existance(vec[i])) {
+      if (!this->deque_.check_existance(vec[i]) &&
+          !this->consumed_.check_existance(vec[i])) {
         this->produce(vec[i]);
       }
     }
   }
 
-  inline T consume() { return this->deque_.pop_front(); }
+  inline T consume() {
+    T value = this->deque_.pop_front();
+    this->consumed_.push_back(value);
+    return value;
+  }
 
-  inline bool try_consume(T& value) { return this->deque_.try_pop(value); }
+  inline bool try_consume(T& value) {
+    if (this->deque_.try_pop(value)) {
+      this->consumed_.push_back(value);
+      return true;
+    }
+    return false;
+  }
 
   inline size_t size() { return this->deque_.size(); }
 
@@ -60,10 +74,6 @@ class producer_consumer {
   inline T& operator[](size_t pos) { return this->deque_[pos]; }
 
   inline void clear() { this.deque_.clear(); }
-
-  inline bool check_existance(const T& value) {
-    return this->deque_.check_existance(value);
-  }
 
   inline void start_producing() {
     if (!this->is_producing_) this->is_producing_ = true;
@@ -85,4 +95,8 @@ class producer_consumer {
   bool is_producing_ = false;
 
   safe_deque<T> deque_;
+
+  safe_deque<T> consumed_;
+
+  std::mutex mutex_;
 };

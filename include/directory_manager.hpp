@@ -1,3 +1,4 @@
+// Copyright 2020 Usman Turkaev
 #pragma once
 #include <boost/filesystem.hpp>
 #include <fstream>

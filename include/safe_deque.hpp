@@ -37,20 +37,6 @@ class safe_deque {
     this->deque_.push_back(std::move(value));
   }
 
-  void push_vec(std::vector<T>&& vec) {
-    std::lock_guard<std::mutex> lock(this->mutex_);
-    for (size_t i = 0; i < vec.size(); ++i) {
-      if (!this->check_existance(vec[i])) this->push_back(vec[i]);
-    }
-  }
-
-  void push_vec(const std::vector<T>& vec) {
-    std::lock_guard<std::mutex> lock(this->mutex_);
-    for (size_t i = 0; i < vec.size(); ++i) {
-      if (!this->check_existance(vec[i])) this->push_back(vec[i]);
-    }
-  }
-
   void push_front(const T& value) {
     std::lock_guard<std::mutex> lock(this->mutex_);
     this->deque_.push_front(value);
@@ -114,6 +100,12 @@ class safe_deque {
     return this->deque_[pos];
   }
 
+  void erase(typename std::deque<T>::const_iterator first,
+             typename std::deque<T>::const_iterator last) {
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    this->deque_.erase(first, last);
+  }
+
   void clear() {
     std::lock_guard<std::mutex> lock(this->mutex_);
     this->deque_.clear();
@@ -131,9 +123,9 @@ class safe_deque {
 
   inline void resize(size_t size) { this->deque_.resize(size); }
 
-  bool check_existance(const T& value) {
+  bool check_existance(T value) {
     std::lock_guard<std::mutex> lock(this->mutex_);
-    for (const T& el : this->deque_) {
+    for (T el : this->deque_) {
       if (el == value) {
         return true;
       }

@@ -1,5 +1,6 @@
 // Copyright 2020 Usman Turkaev
 #pragma once
+#include <cctype>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -7,6 +8,14 @@
 
 namespace html {
 namespace parser {
+std::string bring_to_standart_view(const std::string& string) {
+  std::string standart_view;
+  for (const auto& ch : string) {
+    if (!std::isspace(ch)) standart_view += ch;
+  }
+  return standart_view;
+}
+
 std::vector<std::string> find_links(const std::string& html_code) {
   std::vector<std::string> links;
   size_t last_pos = 0;
@@ -58,7 +67,7 @@ std::vector<std::string> find_images(const std::string& contents) {
     std::string image = html_code.substr(ref_begin, ref_end - ref_begin);
     last_pos = close_tag_pos + 2;
     if (image.find("http") != std::string::npos && is_image(image)) {
-      images.push_back(image);
+      images.push_back(bring_to_standart_view(image));
     }
   }
   return images;

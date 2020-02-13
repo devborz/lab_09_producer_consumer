@@ -129,8 +129,8 @@ void parse_files(producer_consumer<std::string>& pages_paths,
   images_urls.stop_producing();
 }
 
-void write(producer_consumer<std::string>& images_urls,
-           const std::string& out, directory_manager& manager) {
+void write(producer_consumer<std::string>& images_urls, const std::string& out,
+           directory_manager& manager) {
   while (!images_urls.empty() || images_urls.is_producing()) {
     std::string url;
     if (!images_urls.empty()) {
@@ -139,8 +139,12 @@ void write(producer_consumer<std::string>& images_urls,
           char* curl = str_to_char(url);
           download_obj(curl, manager, "img");
         }
-      } else { std::this_thread::sleep_for(std::chrono::milliseconds(100)); }
-    } else { std::this_thread::sleep_for(std::chrono::milliseconds(100)); }
+      } else {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      }
+    } else {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
   }
 }
 
@@ -168,8 +172,10 @@ void work(int argc, char* argv[]) {
     fs::path output_path(output);
     size_t depth = vm["depth"].as<size_t>();
 
-    std::system(std::string("mkdir -p " + output_path.string() + "/pages/").c_str());
-    std::system(std::string("mkdir -p " + output_path.string() + "/images/").c_str());
+    std::system(
+        std::string("mkdir -p " + output_path.string() + "/pages/").c_str());
+    std::system(
+        std::string("mkdir -p " + output_path.string() + "/images/").c_str());
 
     producer_consumer<std::string> pages_paths;
     producer_consumer<std::string> images_urls;
@@ -210,9 +216,8 @@ void work(int argc, char* argv[]) {
                                             std::ref(images_urls)));
     }
     for (size_t i = 0; i < write_th_cnt; ++i) {
-      write_th.add_thread(
-          new boost::thread(write, std::ref(images_urls), std::ref(output), std::ref(images))
-        );
+      write_th.add_thread(new boost::thread(
+          write, std::ref(images_urls), std::ref(output), std::ref(images)));
     }
     download_th.join_all();
     pages_paths.stop_producing();
