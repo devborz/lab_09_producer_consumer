@@ -12,13 +12,15 @@ class directory_manager {
  public:
   directory_manager() = default;
 
+  directory_manager(const std::string& output) : output_(output) {}
+
   directory_manager(const directory_manager&) = delete;
 
   directory_manager(directory_manager&&) = delete;
 
   std::string create_html_file() {
     this->lock();
-    fs::path path("downloads/pages/");
+    fs::path path(this->output_ + "/pages/");
     std::string filename = "page";
     std::string extension = ".html";
     return path.string() + check_existance(path, filename, extension);
@@ -29,7 +31,7 @@ class directory_manager {
   std::string create_image(const std::string& url) {
     this->lock();
     if (html::parser::is_image(url)) {
-      fs::path path("downloads/images/");
+      fs::path path(this->output_ + "/images/");
       std::string extension;
       std::string filename;
       size_t dot_pos = url.find_last_of(".");
@@ -82,4 +84,6 @@ class directory_manager {
   }
 
   std::mutex mutex_;
+
+  std::string output_;
 };

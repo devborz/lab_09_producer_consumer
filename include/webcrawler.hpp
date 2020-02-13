@@ -129,8 +129,8 @@ void parse_files(producer_consumer<std::string>& pages_paths,
   images_urls.stop_producing();
 }
 
-void write(producer_consumer<std::string>& images_urls,  // const fs::path& out,
-           directory_manager& manager) {
+void write(producer_consumer<std::string>& images_urls,
+           const std::string& out, directory_manager& manager) {
   while (!images_urls.empty() || images_urls.is_producing()) {
     std::string url;
     if (!images_urls.empty()) {
@@ -139,12 +139,8 @@ void write(producer_consumer<std::string>& images_urls,  // const fs::path& out,
           char* curl = str_to_char(url);
           download_obj(curl, manager, "img");
         }
-      } else {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-      }
-    } else {
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
+      } else { std::this_thread::sleep_for(std::chrono::milliseconds(100)); }
+    } else { std::this_thread::sleep_for(std::chrono::milliseconds(100)); }
   }
 }
 
@@ -164,14 +160,16 @@ void get_options(variables_map& vm, int argc, char* argv[]) {
 
 void work(int argc, char* argv[]) {
   try {
-    std::system("mkdir -p downloads/pages");
-    std::system("mkdir -p downloads/images");
-
     variables_map vm;
     get_options(vm, argc, argv);
 
     std::string url = vm["url"].as<std::string>();
+    std::string output = vm["output"].as<std::string>();
+    fs::path output_path(output);
     size_t depth = vm["depth"].as<size_t>();
+
+    std::system(std::string("mkdir -p " + output_path.string() + "/pages/").c_str());
+    std::system(std::string("mkdir -p " + output_path.string() + "/images/").c_str());
 
     producer_consumer<std::string> pages_paths;
     producer_consumer<std::string> images_urls;
@@ -188,8 +186,8 @@ void work(int argc, char* argv[]) {
     size_t parser_th_cnt = vm["parser_threads"].as<size_t>();
     size_t write_th_cnt = 1;
 
-    directory_manager pages;
-    directory_manager images;
+    directory_manager pages(output_path.string());
+    directory_manager images(output_path.string());
 
     std::vector<std::string> links = find_links(url, pages, pages_paths);
 
@@ -213,7 +211,8 @@ void work(int argc, char* argv[]) {
     }
     for (size_t i = 0; i < write_th_cnt; ++i) {
       write_th.add_thread(
-          new boost::thread(write, std::ref(images_urls), std::ref(images)));
+          new boost::thread(write, std::ref(images_urls), std::ref(output), std::ref(images))
+        );
     }
     download_th.join_all();
     pages_paths.stop_producing();
@@ -221,7 +220,7 @@ void work(int argc, char* argv[]) {
     images_urls.stop_producing();
     write_th.join_all();
   } catch (const std::exception& e) {
-    std::cout << e.what();
+    std::cerr << e.what();
   }
 }
 }  // namespace webcrawler
